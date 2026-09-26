@@ -1,5 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-  <rect x="1" y="1" width="38" height="38" rx="7" fill="#3B5568"/>
-  <rect x="3.5" y="3.5" width="33" height="33" rx="5" fill="none" stroke="#F4EAD6" stroke-width="1"/>
-  <text x="20" y="27.5" font-size="21" font-family="KaiTi, STKaiti, 'Noto Serif SC', serif" fill="#F4EAD6" text-anchor="middle">问</text>
+  <rect x="1" y="1" width="38" height="38" rx="5" fill="#FFFFFF" stroke="#D4D4D4" stroke-width="1"/>
+  <text x="20" y="27" font-size="19" font-family="-apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif" font-weight="600" fill="#8A8A8A" text-anchor="middle">你</text>
 </svg>

@@ -21,12 +21,28 @@ chroma_db/
 .idea/
 .claude/
 
-# 数据
+# ── 数据 ──
+# 原始语料、派生索引、运行态产出均不进版本库。
+# 注意：gitignore 不支持行尾注释 —— `#` 之后整串都会被当成模式的一部分，
+# 所以每条注释必须独占一行（这里踩过一次：写了行尾注释的几条全部静默失效）。
+data/external/
 data/raw/
 data/processed/
+data/meta/
 data/bm25_index.pkl
 data/api_calls.jsonl
+data/feedback.jsonl
 data/agent_eval_results.json
+
+# 评测集与实验产物 —— 由脚本生成，不提交：
+#   data/eval_law.json  ← scripts/build_eval_set.py 从 data/external/equals/ 生成
+#   data/k_curve.json   ← eval_rag.py --save 生成
+# 这样也避免把第三方数据集派生出的内容直接放进仓库，省去许可证问题。
+data/eval_law.json
+data/k_curve.json
+
+# 测试与实验的临时目录
+.tmp_test/
 
 # 模型缓存
 *.bin

@@ -1,0 +1,22 @@
+[server]
+headless = true
+port = 8501
+maxUploadSize = 200
+maxMessageSize = 200
+
+[browser]
+gatherUsageStats = false
+
+# 简约黑白主题。这里只覆盖 Streamlit 自身的组件（原生控件、滚动条等），
+# 页面级样式在 src/ui/theme.py 里注入，两者取色需保持一致。
+[theme]
+base = "light"
+primaryColor = "#111111"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#FAFAFA"
+textColor = "#111111"
+font = "sans-serif"
+
+# 隐藏工具栏，避免深色模式把黑白配色的对比关系破坏掉
+[client]
+toolbarMode = "minimal"

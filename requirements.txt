@@ -1,24 +1,36 @@
-# Core
-llama-index>=0.10.0
-llama-index-llms-openai-like
-llama-index-embeddings-huggingface
+# 依赖清单 —— 版本全部锁定，不用 `>=` 下限。
+#
+# 为什么锁死：本项目依赖若干**具体的 API 行为**，版本漂移会让它们静默失效 ——
+#   · Chroma 的 collection.get(limit=, offset=) 分页取数
+#   · SentenceTransformerEmbeddingFunction 的构造方式
+#   · CrossEncoder.predict() 默认已应用 sigmoid（重复应用会让拒答阈值失效）
+#   · OpenAI SDK 对 reasoning_effort 参数的支持
+# 下面这些版本是实测跑通的（104 个单元测试 + 端到端问答验证）。
+#
+# 用 uv 的话见 README 的快速开始 —— pyproject.toml 与这里的版本应保持一致，
+# 或者干脆用 `uv export --format requirements-txt > requirements.txt` 自动生成。
 
-# Embedding & Vector
-chromadb>=0.4.0
-sentence-transformers>=2.2.0
-FlagEmbedding>=1.2.0
+# ── Embedding & Vector ──
+chromadb==1.5.9
+sentence-transformers==5.6.0
 
-# Retrieval
-jieba>=0.42
+# ── Retrieval ──
+jieba==0.42.1
 
-# Document Parsing
-pdfplumber>=0.10.0
-PyMuPDF>=1.23.0
+# ── Document Parsing ──
+pdfplumber==0.11.10
+PyMuPDF==1.28.0
 
-# Frontend
-streamlit>=1.28.0
+# ── Frontend ──
+streamlit==1.60.0
 
-# Utils
-python-dotenv>=1.0.0
-openai>=1.0.0
-httpx>=0.25.0
+# ── Utils ──
+python-dotenv==1.2.2
+openai==2.47.0
+httpx==0.28.1
+
+# ── PyTorch（CPU 版）──
+# `+cpu` 这个本地版本串只存在于 PyTorch 的 CPU 源上，因此这一行会**强制**走该源。
+# 若只写 `torch==2.13.0`，pip 会从 PyPI 拉 CUDA 版（约 2.5GB，本机用不上）。
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0+cpu

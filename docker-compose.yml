@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-#  造纸智能助手「小纸」— Docker Compose 编排
+#  法小律 · 中国法律法规智能问答 — Docker Compose 编排
 #
 #  启动:  docker compose up -d
 #  停止:  docker compose down
@@ -9,10 +9,10 @@
 version: "3.9"
 
 services:
-  papermaking-agent:
+  law-agent:
     build: .
-    image: papermaking-agent:latest
-    container_name: papermaking-agent
+    image: law-agent:latest
+    container_name: law-agent
     restart: unless-stopped
 
     ports:
@@ -47,6 +47,6 @@ services:
 
 volumes:
   model_cache:
-    name: papermaking_agent_models
+    name: law_agent_models
   chroma_data:
-    name: papermaking_agent_chroma
+    name: law_agent_chroma
