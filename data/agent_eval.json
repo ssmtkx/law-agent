@@ -1,182 +1,312 @@
 [
   {
     "id": "a001",
-    "scenario": "操作工发现纸张表面出现大量气泡，严重影响成品质量",
-    "question": "我们车间生产的纸张最近表面有很多气泡，是什么原因？怎么解决？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["干燥温度", "水蒸汽", "除气装置", "施胶剂", "CO2", "烘缸"],
-    "category": "故障排查",
+    "scenario": "用户签了合同后对方不履行，想知道能主张什么",
+    "question": "对方签了合同又不履行，我能要求他承担什么责任？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "违约责任",
+      "继续履行",
+      "赔偿损失",
+      "第五百七十七条"
+    ],
+    "category": "合同",
     "difficulty": "easy"
   },
   {
     "id": "a002",
-    "scenario": "印刷厂投诉纸张在印刷过程中掉粉严重，影响印刷效果",
-    "question": "客户说我们的纸印刷时掉粉掉毛，这个问题该怎么处理？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["纤维结合力", "细小纤维", "填料", "打浆度", "保留助剂", "表面施胶"],
-    "category": "故障排查",
-    "difficulty": "easy"
+    "scenario": "用户担心合同里的违约金定得太高",
+    "question": "合同约定的违约金太高了，可以请求法院减少吗？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "违约金",
+      "过分高于",
+      "适当减少",
+      "第五百八十五条"
+    ],
+    "category": "合同",
+    "difficulty": "medium"
   },
   {
     "id": "a003",
-    "scenario": "纸机操作侧和传动侧的定量不一致，横幅定量差超标",
-    "question": "纸张横幅定量差很大，一边厚一边薄，怎么调整？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["流浆箱", "唇板", "开度", "上浆泵", "校准", "±2%"],
-    "category": "故障排查",
+    "scenario": "用户支付了定金但对方违约",
+    "question": "我交了定金，对方违约了，定金能双倍返还吗？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "定金",
+      "双倍返还",
+      "第五百八十七条"
+    ],
+    "category": "合同",
     "difficulty": "medium"
   },
   {
     "id": "a004",
-    "scenario": "质检报告显示纸张白度89%，低于客户要求的92%",
-    "question": "我们的纸张白度只有89%，客户要求92%以上，怎么提高白度？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["白度", "ISO", "荧光增白剂", "OBA", "漂白", "浆料"],
-    "category": "质量控制",
-    "difficulty": "easy"
-  },
-  {
-    "id": "a005",
-    "scenario": "新换了一批针叶木浆后，纸张撕裂度明显下降",
-    "question": "换了浆料之后撕裂度变差了，打浆度对撕裂度有什么影响？怎么平衡？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["撕裂度", "打浆度", "纤维长度", "针叶木", "10°SR", "5%-10%"],
-    "category": "质量控制",
+    "scenario": "用户想解除一份已生效的合同",
+    "question": "合同签了以后我不想继续履行了，可以解除吗？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "解除",
+      "法定解除",
+      "第五百六十三条"
+    ],
+    "category": "合同",
     "difficulty": "medium"
   },
   {
+    "id": "a005",
+    "scenario": "用户借钱给朋友但没有写借条",
+    "question": "借钱给朋友没写借条，只有转账记录，能要回来吗？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "借款合同",
+      "证据",
+      "举证",
+      "民间借贷"
+    ],
+    "category": "借贷",
+    "difficulty": "hard"
+  },
+  {
     "id": "a006",
-    "scenario": "包装纸客户投诉耐破度不够，导致运输破损率高",
-    "question": "我们生产的包装纸耐破度不够怎么办？怎么提高？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["耐破度", "KP浆", "打浆", "30-40°SR", "湿压榨", "纤维间结合力"],
-    "category": "质量控制",
+    "scenario": "用户想知道民间借贷的利率上限",
+    "question": "民间借贷的利息最高可以约定多少？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "利率",
+      "利息",
+      "借款"
+    ],
+    "category": "借贷",
     "difficulty": "medium"
   },
   {
     "id": "a007",
-    "scenario": "施胶后纸张抗水性测试不合格，水滴渗透过快",
-    "question": "AKD施胶后纸张还是渗水，是哪里出了问题？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["AKD", "pH值", "7.5-8.5", "熟化", "24-48小时", "用量", "0.1%-0.3%"],
-    "category": "施胶",
+    "scenario": "用户被公司拖欠工资",
+    "question": "公司拖欠我三个月工资，我可以主张什么？",
+    "expected_tools": [
+      "search_knowledge",
+      "query_tool_list"
+    ],
+    "expected_keywords": [
+      "工资",
+      "劳动合同",
+      "劳动报酬"
+    ],
+    "category": "劳动",
     "difficulty": "medium"
   },
   {
     "id": "a008",
-    "scenario": "表面施胶后纸张印刷时出现斑点，印刷厂再次投诉",
-    "question": "表面施胶不均匀怎么解决？氧化淀粉的浓度和温度应该控制在多少？",
-    "expected_tools": ["search_knowledge", "query_tool_list"],
-    "expected_keywords": ["表面施胶", "氧化淀粉", "固含量", "8%-12%", "55-65℃", "黏度", "20-50mPa·s"],
-    "category": "施胶",
+    "scenario": "用户想知道劳动合同解除后有没有经济补偿",
+    "question": "公司单方面解除劳动合同，需要给我经济补偿吗？涉及哪些法律？",
+    "expected_tools": [
+      "search_knowledge",
+      "query_tool_list"
+    ],
+    "expected_keywords": [
+      "经济补偿",
+      "解除劳动合同"
+    ],
+    "category": "劳动",
     "difficulty": "hard"
   },
   {
     "id": "a009",
-    "scenario": "网部脱水太慢，纸页进入压榨部时干度只有12%，远低于正常水平",
-    "question": "网部脱水变慢了，出网部的纸页干度只有12%，影响脱水的因素有哪些？怎么改善？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["网部脱水", "打浆度", "温度", "真空度", "网目数", "25-35℃", "15%-20%"],
-    "category": "抄纸",
-    "difficulty": "medium"
+    "scenario": "用户买的房子还在租期内",
+    "question": "我买的二手房，租客还在租期内，我能让他搬走吗？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "租赁",
+      "买卖不破租赁",
+      "第七百二十五条"
+    ],
+    "category": "房产",
+    "difficulty": "hard"
   },
   {
     "id": "a010",
-    "scenario": "干燥部蒸汽消耗异常高，吨纸蒸汽成本上升了15%",
-    "question": "我们的干燥部蒸汽消耗太高了，占总能耗比例多少算正常？怎么降低干燥能耗？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["干燥部", "蒸汽消耗", "60%-70%", "温度梯度", "60-80℃", "80-100℃", "100-120℃"],
-    "category": "抄纸",
-    "difficulty": "medium"
+    "scenario": "用户想问房屋租赁合同的最长期限",
+    "question": "房屋租赁合同最长可以签多少年？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "租赁期限",
+      "二十年",
+      "第七百零五条"
+    ],
+    "category": "房产",
+    "difficulty": "easy"
   },
   {
     "id": "a011",
-    "scenario": "压榨后纸页干度只有38%，导致后续干燥负担加重",
-    "question": "出压榨部纸页干度不够，只有38%，正常应该多少？压榨压力调到多少合适？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["压榨部", "干度", "40%-50%", "靴式压榨", "压区压力", "800-1200kN/m"],
-    "category": "抄纸",
+    "scenario": "用户捡到别人的东西后产生了纠纷",
+    "question": "我捡到一部手机，失主找来了，我需要归还吗？能要报酬吗？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "拾得遗失物",
+      "返还",
+      "第三百一十四条"
+    ],
+    "category": "物权",
     "difficulty": "medium"
   },
   {
     "id": "a012",
-    "scenario": "打浆后纤维太短，成纸强度下降明显",
-    "question": "打浆过度了怎么办？怎样判断打浆度是否合适？不同纸种的打浆度要求是多少？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["打浆度", "20-70°SR", "新闻纸", "书写纸", "描图纸", "纤维过短"],
-    "category": "制浆",
+    "scenario": "用户转错账给对方",
+    "question": "我转账转错人了，对方不肯退，怎么办？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "不当得利",
+      "返还",
+      "第九百八十五条"
+    ],
+    "category": "物权",
     "difficulty": "medium"
   },
   {
     "id": "a013",
-    "scenario": "废纸脱墨线生产的浆料白度不够，残留油墨多",
-    "question": "废纸脱墨效果不好，浮选后还有很多油墨颗粒，温度和pH应该怎么控制？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["脱墨", "浮选", "pH值", "9.5-11", "温度", "45-55℃", "脱墨剂", "NaOH", "H2O2"],
-    "category": "制浆",
+    "scenario": "用户想知道公司股东转让股权的规则",
+    "question": "有限责任公司股东要转让股权，需要其他股东同意吗？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "股权转让",
+      "优先购买权",
+      "书面通知",
+      "第八十四条"
+    ],
+    "category": "公司",
     "difficulty": "medium"
   },
   {
     "id": "a014",
-    "scenario": "纸张在存放一周后出现严重翘曲，客户退货",
-    "question": "纸张生产出来是平的，放了一周就翘曲了，是什么原因？干燥工艺要怎么调整？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["翘曲", "干燥", "温度梯度", "起泡", "烘缸"],
-    "category": "故障排查",
+    "scenario": "用户是公司小股东被排除在经营之外",
+    "question": "公司大股东把持一切，我作为小股东有什么权利？",
+    "expected_tools": [
+      "search_knowledge",
+      "query_tool_list"
+    ],
+    "expected_keywords": [
+      "股东",
+      "知情权",
+      "查阅"
+    ],
+    "category": "公司",
     "difficulty": "hard"
   },
   {
     "id": "a015",
-    "scenario": "新员工独立操作施胶工序，需要全面了解设备和操作要点",
-    "question": "我要负责表面施胶这个岗位了，需要准备哪些材料和设备？操作时要注意什么？",
-    "expected_tools": ["search_knowledge", "query_tool_list", "check_common_mistakes"],
-    "expected_keywords": ["表面施胶", "氧化淀粉", "PVA", "SAE", "固含量", "温度", "黏度"],
-    "category": "综合",
-    "difficulty": "easy"
+    "scenario": "用户想知道离婚时房产怎么分",
+    "question": "婚后买的房子写的是对方名字，离婚时我能分到吗？",
+    "expected_tools": [
+      "search_knowledge",
+      "query_tool_list"
+    ],
+    "expected_keywords": [
+      "夫妻共同财产",
+      "离婚",
+      "第一千零六十二条"
+    ],
+    "category": "婚姻家庭",
+    "difficulty": "hard"
   },
   {
     "id": "a016",
-    "scenario": "纸机整体运行正常，但成纸的几项强度指标同步下降，需要系统排查",
-    "question": "最近纸张的撕裂度、耐破度都下降了，可能是什么原因？我应该从哪些方面排查？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["撕裂度", "耐破度", "纤维长度", "打浆度", "KP浆", "结合力"],
-    "category": "综合",
-    "difficulty": "hard"
+    "scenario": "用户想了解子女抚养费的确定标准",
+    "question": "离婚后孩子的抚养费一般怎么确定？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "抚养费",
+      "子女"
+    ],
+    "category": "婚姻家庭",
+    "difficulty": "medium"
   },
   {
     "id": "a017",
-    "scenario": "新建废纸回收产线，需要了解全流程及关键控制点",
-    "question": "我们要建一条废纸回收造纸的生产线，从脱墨到成品纸，全流程是怎样的？每个环节控制什么指标？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["废纸脱墨", "碎解", "筛选", "浮选", "漂白", "制浆", "抄纸", "质量控制"],
-    "category": "综合",
-    "difficulty": "hard"
+    "scenario": "用户被邻居的狗咬伤",
+    "question": "被邻居家的狗咬伤了，医药费该谁出？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [
+      "饲养动物",
+      "损害",
+      "第一千二百四十五条"
+    ],
+    "category": "侵权",
+    "difficulty": "medium"
   },
   {
     "id": "a018",
-    "scenario": "要求同时提高白度和强度，但两者工艺措施可能冲突",
-    "question": "客户既要高白度又要高强度，这两个指标在工艺上怎么兼顾？",
-    "expected_tools": ["search_knowledge"],
-    "expected_keywords": ["白度", "撕裂度", "耐破度", "打浆度", "浆料", "漂白"],
-    "category": "综合",
+    "scenario": "用户在网上被人诽谤",
+    "question": "有人在网上造谣骂我，我可以要求他赔偿吗？怎么维权？",
+    "expected_tools": [
+      "search_knowledge",
+      "check_common_mistakes"
+    ],
+    "expected_keywords": [
+      "名誉权",
+      "人格权",
+      "赔礼道歉",
+      "赔偿损失"
+    ],
+    "category": "侵权",
     "difficulty": "hard"
   },
   {
     "id": "a019",
-    "scenario": "纸机干燥部出现纸张频繁断头，生产无法正常进行",
-    "question": "干燥部老是断纸，和温度设置有关系吗？干燥温度梯度应该怎么设？",
-    "expected_tools": ["search_knowledge", "check_common_mistakes"],
-    "expected_keywords": ["干燥部", "温度梯度", "起泡", "翘曲", "烘缸", "60-80℃"],
-    "category": "故障排查",
-    "difficulty": "hard"
+    "scenario": "用户想立遗嘱处置财产",
+    "question": "我想立遗嘱，有哪些形式？哪种最稳妥？",
+    "expected_tools": [
+      "search_knowledge",
+      "query_tool_list"
+    ],
+    "expected_keywords": [
+      "遗嘱",
+      "公证遗嘱",
+      "继承"
+    ],
+    "category": "继承",
+    "difficulty": "medium"
   },
   {
     "id": "a020",
-    "scenario": "企业想从酸性施胶切换为中碱性AKD施胶，需要全面评估",
-    "question": "我们想从酸性施胶改成AKD中碱性施胶，AKD的用量、pH条件、熟化时间各是多少？切换过程要注意什么？",
-    "expected_tools": ["search_knowledge", "query_tool_list", "check_common_mistakes"],
-    "expected_keywords": ["AKD", "中碱性施胶", "pH值7.5-8.5", "0.1%-0.3%", "熟化", "24-48小时"],
-    "category": "综合",
+    "scenario": "用户问一个域外法律问题（中国法域之外）",
+    "question": "欧盟《通用数据保护条例》(GDPR) 对数据跨境传输有哪些要求？",
+    "expected_tools": [
+      "search_knowledge"
+    ],
+    "expected_keywords": [],
+    "category": "知识库外",
     "difficulty": "hard"
   }
 ]

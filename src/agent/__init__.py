@@ -1,6 +1,6 @@
 """Agent Module — ReAct Agent with tool calling for paper-making expert system."""
 
 from src.agent.tools import TOOL_DEFINITIONS, ToolExecutor
-from src.agent.react_agent import PaperReActAgent
+from src.agent.react_agent import LawReActAgent
 
-__all__ = ["PaperReActAgent", "ToolExecutor", "TOOL_DEFINITIONS"]
+__all__ = ["LawReActAgent", "ToolExecutor", "TOOL_DEFINITIONS"]

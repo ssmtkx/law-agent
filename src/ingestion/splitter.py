@@ -29,10 +29,12 @@ class PaperSentenceSplitter:
     #  internal helpers
     # ------------------------------------------------------------------
 
-    # Patterns that start a new section in Chinese technical text
+    # Patterns that start a new section in Chinese technical text.
+    # 标题部分必须用捕获组包裹，re.split 才会保留标题文本；
+    # 否则标题会被当作分隔符吞掉，多个章节还会被合并成一个 chunk。
     _SECTION_PATTERN = re.compile(
         r'(?:^|\n)\s*'
-        r'(?:'
+        r'('
         r'[一二三四五六七八九十]+[、．.]'           # 一、二、
         r'|[0-9]+[\.\、]'                           # 1. 2、
         r'|第[一二三四五六七八九十0-9]+[章节]'        # 第X章
@@ -46,14 +48,15 @@ class PaperSentenceSplitter:
         # 章节划分
         parts = self._SECTION_PATTERN.split(text)
         result = []
+        # 首个章节标题前的引言/前言不应被丢弃
+        if parts and parts[0].strip():
+            result.append(parts[0].strip())
         for i in range(1, len(parts), 2):
             header = parts[i]
             body = parts[i + 1] if i + 1 < len(parts) else ""
             section = (header + body).strip()
             if section:
                 result.append(section)
-        if not result and parts[0].strip():
-            result.append(parts[0].strip())
         return result if result else [text.strip()]
 
     def _split_section(self, text: str) -> List[str]:

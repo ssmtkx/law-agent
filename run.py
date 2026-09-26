@@ -1,4 +1,4 @@
-"""CLI entry point — start an interactive conversation with Paper Agent."""
+"""CLI entry point — interactive statute Q&A."""
 
 import os
 import sys
@@ -14,20 +14,40 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from src.retrieval.factory import build_retriever, rebuild_index
-from src.generation.rag_pipeline import PaperAgent
+from src.domain import ASSISTANT_NAME, ASSISTANT_ROLE
+from src.generation.rag_pipeline import LawAgent
 
 
-_WELCOME = r"""
+
+def _force_utf8_stdout() -> None:
+    """Windows 控制台默认 GBK，打印 emoji 会直接抛 UnicodeEncodeError。
+
+    实测：`print('👋 ...')` 在 GBK 下必然崩，而这两个 CLI 的欢迎语和输入提示
+    都带 emoji —— 等于一启动就挂。方框字符（╔═╗）在 GBK 里有，emoji 没有，
+    所以光看"能显示中文"会以为没问题。
+    """
+    import io
+    import sys as _sys
+    if hasattr(_sys.stdout, "buffer"):
+        _sys.stdout = io.TextIOWrapper(
+            _sys.stdout.buffer, encoding="utf-8", errors="replace")
+    if hasattr(_sys.stderr, "buffer"):
+        _sys.stderr = io.TextIOWrapper(
+            _sys.stderr.buffer, encoding="utf-8", errors="replace")
+
+
+_WELCOME = rf"""
 ╔══════════════════════════════════════════════════════════╗
 ║                                                          ║
-║     📜  造纸智能助手 — 小纸  Paper Knowledge Agent       ║
+║     ⚖  {ASSISTANT_ROLE} — {ASSISTANT_NAME}                          ║
 ║                                                          ║
-║     我可以回答：                                          ║
-║     · 制浆工艺（打浆、脱墨、浆料配比…）                    ║
-║     · 抄纸流程（网部、压榨、干燥…）                       ║
-║     · 施胶与涂布（AKD、表面施胶…）                        ║
-║     · 故障排查（气泡、掉粉、定量波动…）                   ║
-║     · 质量控制（白度、撕裂度、耐破度…）                   ║
+║     检索范围：                                            ║
+║     · 法律（民法典、刑法、公司法、劳动法…）                ║
+║     · 行政法规                                            ║
+║     · 司法解释                                            ║
+║                                                          ║
+║     回答只引用检索到的条文，并标注法规与条号               ║
+║     检索不到会直说，不编造条号                             ║
 ║                                                          ║
 ║     输入 /help 查看命令  |  /clear 清空记忆  |  /quit 退出 ║
 ║                                                          ║
@@ -36,14 +56,14 @@ _WELCOME = r"""
 
 
 def interactive_loop(retriever):
-    agent = PaperAgent(retriever, top_k=5)
+    agent = LawAgent(retriever, top_k=12)
     print(_WELCOME)
 
     while True:
         try:
             question = input("🙋 你：").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\n👋 小纸：再见！有问题随时来找我。\n")
+            print("\n👋 法小律：再见！有问题随时来找我。\n")
             break
 
         if not question:
@@ -53,7 +73,7 @@ def interactive_loop(retriever):
         if question.startswith("/"):
             cmd = question[1:].strip().lower()
             if cmd in ("quit", "exit", "q"):
-                print("👋 小纸：再见！有问题随时来找我。\n")
+                print("👋 法小律：再见！有问题随时来找我。\n")
                 break
             elif cmd == "clear":
                 agent.clear_history()
@@ -69,12 +89,11 @@ def interactive_loop(retriever):
                 )
                 continue
             elif cmd == "index":
-                print("🔨 重建索引中...")
-                from src.retrieval.reranker import RerankerProcessor
-                new_hybrid = rebuild_index()
+                print("🔨 重建索引中（嵌入需要几分钟）...")
+                new_hybrid, chunks = rebuild_index()      # 返回 (retriever, 条数)
                 if new_hybrid:
-                    agent.retriever = RerankerProcessor(new_hybrid, candidate_pool=20)
-                    print("[*] 索引重建完成\n")
+                    agent.retriever = new_hybrid          # 精排默认关闭，见 factory.py
+                    print(f"[*] 索引重建完成，共 {chunks:,} 条\n")
                 continue
             else:
                 print(f"未知命令: /{cmd}，输入 /help 查看可用命令\n")
@@ -82,16 +101,19 @@ def interactive_loop(retriever):
 
         # ── normal turn ──
         result = agent.chat(question)
-        print(f"\n🤖 小纸：{result['answer']}\n")
+        print(f"\n🤖 法小律：{result['answer']}\n")
 
         if result.get("sources"):
             print(f"  📚 引用了 {len(result['sources'])} 条资料\n")
 
 
 def main():
+    _force_utf8_stdout()
     retriever, count = build_retriever()
     if count == 0:
-        print("[!] 知识库为空。请先运行: python scripts/seed_data.py")
+        print("[!] 知识库为空。请先采集语料并建索引：")
+        print("      python scripts/crawl_laws.py")
+        print("      python scripts/build_index.py --rebuild")
         return
 
     print(f"[*] 知识库: {count} 条 | 三阶段检索链就绪\n")

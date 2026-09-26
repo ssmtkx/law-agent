@@ -1,4 +1,4 @@
-"""Agent evaluation CLI — measure ReAct Agent answer quality across 20 fault scenarios.
+"""Agent evaluation CLI — measure ReAct Agent answer quality across 20 legal scenarios.
 
 Usage::
 
@@ -11,9 +11,12 @@ Usage::
 Scoring dimensions (100 points per scenario)::
 
     Tool Selection   25%  —  expected tools actually called
-    Structure        25%  —  三段式 (准备 / 分步教学 / 避坑指南) present
+    Structure        25%  —  三段式 (法律依据 / 适用分析 / 风险提示) present
     Source Citation  25%  —  [来源N] markers in answer
     Keyword Coverage 25%  —  expected keywords found in answer
+
+`score_structure` 的判定词表必须与 react_agent 的 _SYSTEM_PROMPT 保持一致：
+改了提示词里的三段式而不同步这里，评分衡量的就是一套已不存在的要求。
 
 Requirements::
 
@@ -40,10 +43,8 @@ load_dotenv()
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from src.indexing.vector_store import VectorStore
-from src.indexing.indexer import build_hybrid_from_collection
-from src.retrieval.reranker import RerankerProcessor
-from src.agent.react_agent import PaperReActAgent
+from src.domain import DEFAULT_COLLECTION
+from src.agent.react_agent import LawReActAgent
 
 
 # ═══════════════════════════════════════════════════════════════════
@@ -66,11 +67,16 @@ def score_tool_selection(
 
 
 def score_structure(answer: str) -> Tuple[float, str]:
-    """Score answer structure: presence of 3-section format (0–25)."""
+    """Score answer structure: presence of the 3-section format (0–25).
+
+    桶的关键词必须与 react_agent._SYSTEM_PROMPT 里要求的三段式一致
+    （法律依据 / 适用分析 / 风险提示）。改提示词就要同步改这里，
+    否则评分衡量的是一套已经不存在的要求。
+    """
     checks = {
-        "准备": ["准备", "预备", "材料", "设备"],
-        "步骤": ["步骤", "分步", "教学", "操作", "方法", "流程"],
-        "避坑": ["避坑", "注意", "常见", "故障", "错误", "避免", "误区"],
+        "法律依据": ["法律依据", "依据", "《", "第", "条"],
+        "适用分析": ["适用", "分析", "构成要件", "要件", "情形"],
+        "风险提示": ["风险", "提示", "注意", "举证", "时效", "误区", "不确定"],
     }
     scores = {}
     total = 0.0
@@ -84,12 +90,23 @@ def score_structure(answer: str) -> Tuple[float, str]:
 
 
 def score_sources(answer: str) -> Tuple[float, str]:
-    """Score source citation: [来源N] markers in answer (0–25)."""
-    sources = re.findall(r"\[来源\d+\]", answer)
-    count = len(sources)
+    """Score source citation (0–25).
+
+    接受两种标注格式：
+
+    * ``[来源3]`` —— 提示词要求的编号形式
+    * ``[来源：关税法第五条]`` —— 模型偶尔直接写法规与条号
+
+    后者**信息量更大**，曾经因为它不匹配编号正则而被判为"没有引用"，
+    实测让一条完全正确的回答在引用维度上拿了 0 分。
+    """
+    numbered = re.findall(r"\[来源\d+\]", answer)
+    named = re.findall(r"\[来源[：:][^\]]+\]", answer)
+    count = len(numbered) + len(named)
+    sources = numbered + named
     # 2+ citations → full score
     ratio = min(count / 2.0, 1.0)
-    detail = f"found {count} source markers"
+    detail = f"found {count} source markers ({len(named)} 为具名格式)"
     return ratio * 25.0, detail
 
 
@@ -109,7 +126,7 @@ def score_keywords(answer: str, expected_keywords: List[str]) -> Tuple[float, st
 # ═══════════════════════════════════════════════════════════════════
 
 def evaluate_one(
-    agent: PaperReActAgent,
+    agent: LawReActAgent,
     item: Dict[str, Any],
     verbose: bool = False,
 ) -> Dict[str, Any]:
@@ -249,22 +266,32 @@ def _mini_bar(val: float, width: int = 10) -> str:
 #  CLI entry
 # ═══════════════════════════════════════════════════════════════════
 
-def build_retriever(collection_name: str = "paper_knowledge"):
-    """Set up the three-stage retrieval chain."""
-    store = VectorStore()
-    collection = store.get_or_create_collection(collection_name)
+def build_retriever(collection_name: str = DEFAULT_COLLECTION):
+    """Set up the retrieval chain — 复用统一的 factory。
 
-    if collection.count() == 0:
-        from scripts.seed_data import seed
-        seed()
-        collection = store.get_or_create_collection(collection_name)
+    这里一度自己拼 `RerankerProcessor(hybrid)` + 无查询改写，那是**已被实测
+    否决的配置**（精排两次实测均为负作用，且没有 HyDE 会丢掉 28 个点的召回）。
+    评测脚本自己搭链路的代价就是：生产配置改了它不知道，测出来的是一套
+    已经不存在的东西。改成复用 factory 后，配置只有一处定义。
+    """
+    from src.retrieval.factory import build_retriever as _build
 
-    hybrid = build_hybrid_from_collection(collection, alpha=0.3)
-    reranker = RerankerProcessor(hybrid, candidate_pool=20)
-    return reranker
+    retriever, count = _build(collection_name=collection_name)
+    if count == 0:
+        print("[!] 知识库为空，评测无意义。请先：")
+        print("      python scripts/crawl_laws.py")
+        print("      python scripts/build_index.py --rebuild")
+    return retriever
 
 
 def main():
+    # Windows 控制台默认 GBK，报告里的 emoji 与符号会直接抛 UnicodeEncodeError
+    # —— 实测它会盖住真正的结果（Agent 明明跑完了，崩在打印那一步）
+    if hasattr(sys.stdout, "buffer"):
+        import io
+        sys.stdout = io.TextIOWrapper(
+            sys.stdout.buffer, encoding="utf-8", errors="replace")
+
     parser = argparse.ArgumentParser(
         description="ReAct Agent evaluation on 20 fault scenarios",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -326,7 +353,7 @@ def main():
     # ── build retriever + agent ──
     print("[*] Building retriever ...")
     retriever = build_retriever()
-    agent = PaperReActAgent(retriever, max_iterations=10, max_history=0, top_k=5)
+    agent = LawReActAgent(retriever, max_iterations=10, max_history=0, top_k=5)
     print("[*] Agent ready\n")
 
     # ── evaluate ──

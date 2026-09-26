@@ -7,6 +7,8 @@ import chromadb
 from chromadb.utils import embedding_functions
 from dotenv import load_dotenv
 
+from src.domain import DEFAULT_COLLECTION
+
 load_dotenv()
 
 
@@ -30,8 +32,7 @@ class VectorStore:
             model_name=self.model_name
         )
 
-    def get_or_create_collection(self, name: str = "paper_knowledge"):
-        # 获取/创建集合
+    def get_or_create_collection(self, name: str = DEFAULT_COLLECTION):
         """Get an existing collection or create one."""
         return self.client.get_or_create_collection(
             name=name,
@@ -69,3 +70,33 @@ class VectorStore:
     def query(self, collection, query: str, n_results: int = 5) -> dict:
         """Semantic search for the top-N chunks."""
         return collection.query(query_texts=[query], n_results=n_results)
+
+
+def fetch_all(collection, batch: int = 5000) -> dict:
+    """Fetch every record in a collection, paginated.
+
+    ``collection.get()`` 不带 limit 时会试图一次取回全部记录，Chroma 的
+    SQLite 后端因此撞上 ``SQLITE_MAX_VARIABLE_NUMBER``（约 32,766）：
+    实测 27,672 条可以通过，54,618 条报 "too many SQL variables"。
+
+    也就是说一次性取数的做法把索引规模卡在了 3 万条左右 —— 而本项目
+    重建后的规模是这个数的近两倍。分批取没有这个问题。
+
+    Returns ``{"ids": [...], "documents": [...], "metadatas": [...]}``.
+    """
+    ids: List[str] = []
+    documents: List[str] = []
+    metadatas: List[dict] = []
+    offset = 0
+    while True:
+        page = collection.get(limit=batch, offset=offset)
+        page_ids = page.get("ids") or []
+        if not page_ids:
+            break
+        ids.extend(page_ids)
+        documents.extend(page.get("documents") or [])
+        metadatas.extend(page.get("metadatas") or [])
+        offset += len(page_ids)
+        if len(page_ids) < batch:
+            break
+    return {"ids": ids, "documents": documents, "metadatas": metadatas}

@@ -25,13 +25,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-logger = logging.getLogger("papermaking_agent.tracker")
+logger = logging.getLogger("law_agent.tracker")
 
 # ── DeepSeek pricing (CNY per 1M tokens) ──
-# deepseek-v4-flash: CNY2 / CNY8 (input / output)
+# deepseek-v4-pro: CNY2 / CNY8 (input / output)
 # deepseek-v4-pro:   CNY10 / CNY40
 _PRICE_MAP: Dict[str, tuple] = {
-    "deepseek-v4-flash": (2.0, 8.0),
+    "deepseek-v4-pro": (2.0, 8.0),
     "deepseek-v4-pro": (10.0, 40.0),
     "deepseek-chat": (2.0, 8.0),  # legacy alias
 }

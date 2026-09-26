@@ -1,8 +1,8 @@
-"""Streamlit web app — 造纸智能助手「小纸」（宣纸·水墨主题）
+"""Streamlit web app — 法律智能助手（简约黑白主题）
 
 Dual-mode interface:
-    - 🔍 知识问答 — simple RAG, one-shot retrieval + generation
-    - 🤖 故障排查 Agent — ReAct loop with tool calling + visible thought chain
+    - 📖 条文问答 — simple RAG, one-shot retrieval + generation
+    - 🤖 Agent 法律分析 — ReAct loop with tool calling + visible thought chain
 
 Usage::
 
@@ -27,8 +27,9 @@ load_dotenv()
 
 import streamlit as st
 
-from src.generation.rag_pipeline import PaperAgent
-from src.agent.react_agent import PaperReActAgent
+from src.agent.react_agent import LawReActAgent
+from src.domain import ASSISTANT_NAME, ASSISTANT_ROLE, KB_CATEGORY_TEXT
+from src.generation.rag_pipeline import LawAgent
 from src.ui.theme import THEME_CSS
 from src.ui import components as ui
 
@@ -43,13 +44,13 @@ AVATAR_ASSISTANT = str(_ASSETS / "avatar-assistant.svg")
 # ═══════════════════════════════════════════════════════════════
 
 st.set_page_config(
-    page_title="造纸智能助手 · 小纸",
+    page_title=f"{ASSISTANT_ROLE} · {ASSISTANT_NAME}",
     page_icon=FAVICON,
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# 注入宣纸·水墨主题（设计令牌 + 全局样式）
+# 注入主题（设计令牌 + 全局样式）
 st.markdown(THEME_CSS, unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════════════════════════
@@ -68,7 +69,7 @@ def load_retriever():
 #  Session state initialisation
 # ═══════════════════════════════════════════════════════════════
 
-# 进行各个状态的初始化（对话从空白开始；「小纸」介绍以静态卡片展示在主页面顶部）
+# 进行各个状态的初始化（对话从空白开始；助手介绍以静态卡片展示在主页面顶部）
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -80,14 +81,14 @@ if "retriever" not in st.session_state:
         st.session_state.retriever, st.session_state.chunk_count = load_retriever()
 
 if "rag_agent" not in st.session_state:
-    st.session_state.rag_agent = PaperAgent(st.session_state.retriever, top_k=5)
+    st.session_state.rag_agent = LawAgent(st.session_state.retriever, top_k=12)
 
 if "react_agent" not in st.session_state:
-    st.session_state.react_agent = PaperReActAgent(
+    st.session_state.react_agent = LawReActAgent(
         st.session_state.retriever,
         max_iterations=10,
         max_history=10,
-        top_k=5,
+        top_k=12,
         on_thought=None,  # will be set dynamically per-turn
     )
 
@@ -102,13 +103,18 @@ with st.sidebar:
     st.divider()
 
     # ── mode selector ──
+    # 用「显示标签 → 模式键」的显式映射，而不是让下游去嗅探标签文本。
+    # 之前 render_mode_intro 用 `"Agent" in mode` 判断，标签一改就会
+    # 静默显示错误的模式介绍卡。
+    _MODE_LABELS = {"qa": "条文问答", "agent": "Agent 法律分析"}
     st.subheader("工作模式")
-    mode = st.radio(
+    mode_label = st.radio(
         "选择模式",
-        ["知识问答", "Agent 故障排查"],
+        list(_MODE_LABELS.values()),
         label_visibility="collapsed",
     )
-    is_agent_mode = "Agent" in mode
+    mode = next(k for k, v in _MODE_LABELS.items() if v == mode_label)
+    is_agent_mode = mode == "agent"
 
     st.divider()
 
@@ -122,10 +128,10 @@ with st.sidebar:
     )
     col1, col2 = st.columns(2)
     with col1:
-        ui.render_stamp(chunk_count, "知识片段")
+        ui.render_stamp(chunk_count, "收录条文")
     with col2:
         ui.render_stamp(stage_count, "检索工序")
-    ui.render_stamp(answered, "本卷已答")
+    ui.render_stamp(answered, "已答问题")
 
     st.divider()
 
@@ -139,25 +145,26 @@ with st.sidebar:
         st.session_state.react_agent.clear_history()
         st.rerun()
 
-    if st.button("重建知识索引", use_container_width=True, help="解析 data/raw/ 下所有 PDF 并重建知识库"):
-        with st.spinner("正在重建知识索引 ..."):
+    if st.button("重建知识索引", use_container_width=True,
+                 help="从 data/raw/laws/ 重新解析法规条文并重建索引"):
+        with st.spinner("正在重建知识索引（嵌入需要几分钟）..."):
             try:
                 from src.retrieval.factory import rebuild_index
-                from src.retrieval.reranker import RerankerProcessor
 
-                new_hybrid = rebuild_index("data/raw")
+                # 不要在这里包 RerankerProcessor —— 精排默认关闭（实测净负作用，
+                # 会把查询改写的收益抹平），包上会让重建后的链路与默认配置分叉。
+                new_hybrid, chunk_count = rebuild_index()
 
                 if new_hybrid:
-                    reranker = RerankerProcessor(new_hybrid, candidate_pool=20)
-                    st.session_state.retriever = reranker
-                    st.session_state.rag_agent = PaperAgent(st.session_state.retriever, top_k=5)
-                    st.session_state.react_agent = PaperReActAgent(
-                        st.session_state.retriever, max_iterations=10, max_history=10, top_k=5
+                    st.session_state.retriever = new_hybrid
+                    st.session_state.rag_agent = LawAgent(st.session_state.retriever, top_k=12)
+                    st.session_state.react_agent = LawReActAgent(
+                        st.session_state.retriever, max_iterations=10, max_history=10, top_k=12
                     )
-                    st.session_state.chunk_count = new_hybrid.collection.count()
-                    st.success("索引重建完成，知识库已更新")
+                    st.session_state.chunk_count = chunk_count
+                    st.success(f"索引重建完成，共 {chunk_count:,} 条")
                 else:
-                    st.warning("未找到 PDF 文件，请将 PDF 放入 data/raw/ 目录")
+                    st.warning("未找到法规语料，请先运行 scripts/crawl_laws.py")
                 st.rerun()
             except Exception as exc:
                 st.error(f"重建失败：{exc}")
@@ -167,20 +174,21 @@ with st.sidebar:
     # ── about ──
     with st.expander("关于"):
         st.markdown(
-            """
-            **造纸智能助手 · 小纸** 是一个基于 RAG + Agent 的
-            垂直领域问答系统。
+            f"""
+            **{ASSISTANT_ROLE} · {ASSISTANT_NAME}** 是一个基于 RAG + Agent 的
+            法律垂直领域问答系统。
 
             **技术栈**
-            - DeepSeek-V4 · BGE Embedding
-            - Chroma · BM25 · CrossEncoder
-            - LlamaIndex · Streamlit
+            - DeepSeek-V4-Pro（查询改写 + 答案生成）
+            - BGE Embedding · Chroma · BM25 · RRF 融合
+            - Streamlit
 
-            **能力范围**
-            - 制浆、抄纸、施胶、涂布
-            - 质量控制与故障排查
+            **语料范围**
+            - {KB_CATEGORY_TEXT}
+            - 按条文切分，一条一个知识块
 
-            知识库内容为模拟数据，仅供演示。
+            语料来自国家法律法规数据库公开的正式文本。
+            回答不构成法律意见。
             """
         )
 
@@ -191,8 +199,8 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════
 
 ui.brand_banner()
-ui.render_welcome()            # 「小纸」介绍 —— 主界面上方
-ui.render_mode_intro(mode)     # 具体 Agent 模式介绍 —— 其下
+ui.render_welcome()            # 助手介绍 —— 主界面上方
+ui.render_mode_intro(mode)     # 当前模式介绍 —— 其下（传模式键，非标签文本）
 
 # render message history
 for i, msg in enumerate(st.session_state.messages):
@@ -211,14 +219,14 @@ for i, msg in enumerate(st.session_state.messages):
 
         # feedback for assistant messages
         if role == "assistant" and msg.get("mode") != "system":
-            ui.render_feedback(i)
+            ui.render_feedback(i, msg)
 
 # ═══════════════════════════════════════════════════════════════
 #  Chat input & processing
 # ═══════════════════════════════════════════════════════════════
 
 if prompt := st.chat_input(
-    "输入你的造纸工艺问题，例如：纸张出现气泡怎么办？"
+    "输入你的法律问题，例如：违约金过高可以请求法院调减吗？"
 ):
     # ── add user message ──
     st.session_state.messages.append(
@@ -239,7 +247,7 @@ if prompt := st.chat_input(
             # inject the thought collector into the agent for this turn
             st.session_state.react_agent.on_thought = collect_thought
 
-            with st.spinner("小纸正在思考并检索资料 ..."):
+            with st.spinner(f"{ASSISTANT_NAME}正在检索法条 ..."):
                 try:
                     result = st.session_state.react_agent.chat(prompt)
                     answer = result.get("answer", "抱歉，处理过程中出现了问题。")
@@ -255,11 +263,20 @@ if prompt := st.chat_input(
 
             st.markdown(answer)
 
-            # sources from tool calls
-            sources = [
-                tc.get("result_preview", "")[:200]
-                for tc in tool_calls
-            ]
+            # sources from tool calls (带真实来源文件名)
+            sources = []
+            for tc in tool_calls:
+                call_sources = tc.get("sources") or []
+                if call_sources:
+                    for s in call_sources:
+                        snippet = (s.get("snippet") or "")[:200]
+                        if snippet:
+                            src_name = s.get("source") or "知识库"
+                            sources.append(f"[{tc['tool']}] 来源：{src_name} · {snippet}")
+                else:
+                    preview = tc.get("result_preview", "")[:200]
+                    if preview:
+                        sources.append(f"[{tc['tool']}] {preview}")
 
             ui.render_sources(sources)
             ui.render_thoughts(thoughts)
@@ -268,8 +285,10 @@ if prompt := st.chat_input(
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": answer,
+                "question": prompt,        # 反馈要连同问题一起记录
                 "sources": sources,
                 "thoughts": thoughts,
+                "iterations": iterations,
                 "mode": "agent",
             })
 
@@ -280,22 +299,26 @@ if prompt := st.chat_input(
                     result = st.session_state.rag_agent.chat(prompt)
                     answer = result.get("answer", "抱歉，处理过程中出现了问题。")
                     raw_sources = result.get("sources", [])
+                    source_metas = result.get("source_metas", [])
                     mode_label = result.get("mode", "rag")
                 except Exception as exc:
                     answer = f"处理出错：{exc}\n\n请检查 API Key 配置或稍后重试。"
                     raw_sources = []
+                    source_metas = []
                     mode_label = "rag"
 
             st.markdown(answer)
 
-            # format sources
+            # format sources（带来源文件名）
             sources = [
-                f"[来源{i+1}] {src[:200]}{'...' if len(src) > 200 else ''}"
-                for i, src in enumerate(raw_sources)
+                f"[来源{i+1}] {meta.get('source', '知识库')} · {meta.get('snippet', src)[:200]}"
+                for i, (src, meta) in enumerate(zip(raw_sources, source_metas))
             ] if raw_sources else []
 
             if mode_label == "chat":
                 st.caption("闲聊模式（未检索知识库）")
+            elif mode_label == "out_of_kb":
+                st.caption("知识库外问题（未检索到相关资料，未调用模型生成）")
 
             ui.render_sources(sources)
 
@@ -303,13 +326,15 @@ if prompt := st.chat_input(
             st.session_state.messages.append({
                 "role": "assistant",
                 "content": answer,
+                "question": prompt,        # 反馈要连同问题一起记录
                 "sources": sources,
                 "thoughts": None,
                 "mode": mode_label,
             })
 
         # feedback for the new message
-        ui.render_feedback(len(st.session_state.messages) - 1)
+        _last = len(st.session_state.messages) - 1
+        ui.render_feedback(_last, st.session_state.messages[_last])
 
 # ═══════════════════════════════════════════════════════════════
 #  Footer
