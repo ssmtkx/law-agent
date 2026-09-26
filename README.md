@@ -110,44 +110,21 @@ uv sync                 # 按 pyproject.toml 创建 .venv 并装依赖
 uv run streamlit run app.py
 ```
 
-`pyproject.toml` 的最小写法（**版本请按实际能跑的锁**，不要用 `>=` 下限）：
+依赖定义在仓库根的 [`pyproject.toml`](pyproject.toml)，版本与 `requirements.txt`
+一致（均为实测跑通的锁定版本）。**为什么锁死而不是写 `>=` 下限，理由写在该文件
+顶部的注释里 —— 这里不再抄一份。**
 
-```toml
-[project]
-name = "law-agent"
-requires-python = ">=3.10"
-dependencies = [
-    "chromadb==1.5.9",
-    "sentence-transformers==5.6.0",
-    "jieba==0.42.1",
-    "pdfplumber==0.11.10",
-    "pymupdf==1.28.0",
-    "streamlit==1.60.0",
-    "python-dotenv==1.2.2",
-    "openai==2.47.0",
-    "httpx==0.28.1",
-]
-
-[tool.uv.sources]
-torch = { index = "pytorch-cpu" }
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-```
-
-> **为什么锁死版本而不是写 `>=`**：本项目的代码依赖若干具体 API 行为——
-> Chroma 的 `get(limit=, offset=)` 分页、`SentenceTransformerEmbeddingFunction`
-> 的构造方式、`CrossEncoder.predict()` 默认已含 sigmoid（重复应用会让拒答阈值
-> 失效）、OpenAI SDK 对 `reasoning_effort` 的支持。版本漂移会让这些**静默失效**。
+> ⚠️ **别在文档里再内联一份 pyproject。** 这里曾经抄过一版"最小写法"，它漏掉了
+> 把 `torch` 显式列为**直接依赖** —— 而 `[tool.uv.sources]` 的覆盖只对直接依赖
+> 生效，照抄会从 PyPI 拉到约 2.5GB 的 CUDA 版 torch（CPU 环境用不上）。
+> 依赖清单只有 `pyproject.toml` 一个来源。
 >
-> `requirements.txt` 已同步为锁定版本，两者应保持一致；迁到 uv 之后可以用
+> 迁到 uv 之后，`requirements.txt` 可以用
 > `uv export --format requirements-txt > requirements.txt` 自动生成，避免手工同步。
 
 ### 1b. 或者用 pip
 
-不想装 uv 也可以，`requirements.txt` 里的版本与上面完全一致：
+不想装 uv 也可以，`requirements.txt` 里的版本与 `pyproject.toml` 完全一致：
 
 ```bash
 python -m venv .venv
@@ -286,6 +263,8 @@ python eval_rag.py --dataset data/eval_law.json --hyde      # 带查询改写
 ```
 ├── app.py / run.py / run_agent.py    # 入口：Web / CLI / Agent CLI
 ├── eval_rag.py / eval_agent.py       # 评测 CLI
+├── pyproject.toml                    # 依赖定义（uv；锁定理由见文件顶部注释）
+├── requirements.txt                  # 同一批版本（pip 路径）
 │
 ├── src/                              # 约 4,700 行
 │   ├── domain.py                     # 身份、语料范围、集合名（单一来源）

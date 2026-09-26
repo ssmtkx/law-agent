@@ -1,0 +1,68 @@
+# ─────────────────────────────────────────────────────────────
+#  law-agent ·「法小律」中国法律法规智能问答
+#
+#  环境管理用 uv：
+#      uv sync                     建 .venv 并装依赖
+#      uv run streamlit run app.py 启动 Web
+#
+#  版本与 requirements.txt 完全一致（同一批实测跑通的版本）。
+#
+#  为什么锁死版本而不是写 `>=` 下限：本项目依赖若干**具体的 API 行为** ——
+#    · Chroma 的 collection.get(limit=, offset=) 分页取数
+#    · SentenceTransformerEmbeddingFunction 的构造方式
+#    · CrossEncoder.predict() 默认已应用 sigmoid（重复应用会让拒答阈值失效）
+#    · OpenAI SDK 对 reasoning_effort 参数的支持
+#  版本漂移会让这些**静默失效**——不报错，只是结果变差。
+# ─────────────────────────────────────────────────────────────
+
+[project]
+name = "law-agent"
+version = "0.3.0"
+description = "「法小律」中国法律法规智能问答 —— RAG + ReAct Agent，条文可溯源"
+requires-python = ">=3.10"
+
+dependencies = [
+    # ── Embedding & Vector ──
+    "chromadb==1.5.9",
+    "sentence-transformers==5.6.0",
+
+    # ── Retrieval ──
+    "jieba==0.42.1",
+
+    # ── Document parsing ──
+    "pdfplumber==0.11.10",
+    "pymupdf==1.28.0",
+
+    # ── Frontend ──
+    "streamlit==1.60.0",
+
+    # ── Utils ──
+    "python-dotenv==1.2.2",
+    "openai==2.47.0",
+    "httpx==0.28.1",
+
+    # ── PyTorch（CPU 版）──
+    # torch 必须**显式**列在这里，否则下面的 [tool.uv.sources] 不生效：
+    # source 覆盖只作用于直接依赖，而 torch 本来只是 sentence-transformers
+    # 的间接依赖。不列的话 uv 会去 PyPI 拉 CUDA 版（约 2.5GB，本机用不上）。
+    #
+    # 写死 `+cpu` 是刻意的：这个本地版本串只存在于 PyTorch 的 CPU 源上，
+    # 因此万一 source 没生效，uv 会**直接报解析失败**，而不是安静地下载
+    # 2.5GB 的 CUDA 包。
+    "torch==2.13.0+cpu",
+]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+# explicit = true 表示这个源**只**用于在 [tool.uv.sources] 里点名指向它的包
+# （即 torch），不会被拿去找其它依赖。
+explicit = true
+
+[tool.uv]
+# 本仓库是应用而不是库：代码通过 `sys.path` 直接 `import src.*`，
+# 不需要把自己构建/安装成包。
+package = false
